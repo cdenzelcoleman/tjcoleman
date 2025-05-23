@@ -1,19 +1,44 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Video, Like, Comment, Share
-from .serializers import VideoSerializer, LikeSerializer, CommentSerializer, ShareSerializer
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Video, Like, Comment, Share, Subscription
+from .serializers import VideoSerializer, CommentSerializer, ShareSerializer, SubscriptionSerializer
 
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.filter(is_public=True)
     serializer_class = VideoSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
     
     def perform_create(self, serializer):
-        serializer.save(uploader=self.request.user)
+        video = serializer.save(uploader=self.request.user)
+        # Send notification to subscribers
+        self.notify_subscribers(video)
+    
+    def notify_subscribers(self, video):
+        subscribers = Subscription.objects.filter(is_active=True)
+        if subscribers.exists():
+            try:
+                recipient_list = [sub.email for sub in subscribers]
+                send_mail(
+                    subject=f'New Video: {video.title}',
+                    message=f'A new video "{video.title}" has been uploaded! Check it out on VideoHub.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=recipient_list,
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"Failed to send notification emails: {e}")
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):

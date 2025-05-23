@@ -2,6 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    email = models.EmailField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        unique_together = ('user', 'email')
+    
+    def __str__(self):
+        return f"{self.email} subscription"
+
 class Video(models.Model):
     VIDEO_TYPES = [
         ('short', 'Short Form'),
