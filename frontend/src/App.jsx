@@ -5,6 +5,7 @@ import AdminPanel from './components/AdminPanel'
 import Navigation from './components/Navigation'
 import AdminLogin from './components/AdminLogin'
 import api from './utils/api'
+import './index.css';
 import './App.css'
 
 function App() {
