@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
-import { Heart, MessageCircle, Share2, Play, Pause } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Play, Pause, Bell } from 'lucide-react'
 import ShareModal from './ShareModal'
 import CommentsSection from './CommentsSection'
+import SubscribeModal from './SubscribeModal'
 
 const VideoPlayer = ({ video, onLike, onComment, onShare, onView }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showComments, setShowComments] = useState(false)
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [hasViewed, setHasViewed] = useState(false)
   const videoRef = useRef(null)
   const containerRef = useRef(null)
@@ -143,6 +145,15 @@ const VideoPlayer = ({ video, onLike, onComment, onShare, onView }) => {
               <Share2 size={20} />
             </button>
           </div>
+
+          <div className="action-group">
+            <button
+              className="action-btn"
+              onClick={() => setShowSubscribeModal(true)}
+            >
+              <Bell size={20} />
+            </button>
+          </div>
         </div>
 
         {showComments && (
@@ -159,6 +170,12 @@ const VideoPlayer = ({ video, onLike, onComment, onShare, onView }) => {
           video={video}
           onShare={onShare}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {showSubscribeModal && (
+        <SubscribeModal
+          onClose={() => setShowSubscribeModal(false)}
         />
       )}
     </div>
