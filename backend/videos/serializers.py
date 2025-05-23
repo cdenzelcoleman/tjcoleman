@@ -51,3 +51,8 @@ class ShareSerializer(serializers.ModelSerializer):
     class Meta:
         model = Share
         fields = ['id', 'user', 'video', 'platform', 'created_at']
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ['id', 'email', 'is_active', 'created_at']
