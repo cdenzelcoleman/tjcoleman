@@ -18,7 +18,8 @@ body {
 
 .main-content {
   flex: 1;
-  overflow: hidden;
+ overflow-y: auto;
+  margin-top: 80px;
 }
 
 /* Navigation Styles */
