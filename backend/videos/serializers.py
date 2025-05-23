@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Video, Like, Comment, Share
+from .models import Video, Like, Comment, Share, Subscription
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

@@ -97,3 +97,76 @@ class VideoViewSet(viewsets.ModelViewSet):
         videos = Video.objects.filter(is_public=True).order_by('-created_at')
         serializer = self.get_serializer(videos, many=True)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
+    def subscribe(self, request, pk=None):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create anonymous user for subscription if not authenticated
+        user = request.user if request.user.is_authenticated else None
+        if not user:
+            # Create or get anonymous user
+            user, created = User.objects.get_or_create(
+                username=f'anonymous_{email}',
+                defaults={'email': email}
+            )
+        
+        subscription, created = Subscription.objects.get_or_create(
+            user=user,
+            email=email,
+            defaults={'is_active': True}
+        )
+        
+        if not created and not subscription.is_active:
+            subscription.is_active = True
+            subscription.save()
+        
+        message = 'Subscribed successfully!' if created else 'Already subscribed!'
+        return Response({'message': message})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def admin_login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = authenticate(username=username, password=password)
+    if user and user.is_staff:
+        login(request, user)
+        return Response({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser
+            }
+        })
+    
+    return Response({'error': 'Invalid credentials or not an admin'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_logout(request):
+    logout(request)
+    return Response({'message': 'Logout successful'})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_admin_status(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return Response({
+            'is_admin': True,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'is_staff': request.user.is_staff,
+                'is_superuser': request.user.is_superuser
+            }
+        })
+    return Response({'is_admin': False})
