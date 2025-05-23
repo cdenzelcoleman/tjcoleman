@@ -27,18 +27,31 @@ const VideoFeed = () => {
 
   const handleLike = async (videoId) => {
     try {
-      await api.post(`/api/videos/${videoId}/like/`)
-      // Refresh videos to get updated like count
-      fetchVideos()
+      const response = await api.post(`/api/videos/${videoId}/like/`)
+      console.log('Like response:', response.data)
+      
+      // Update the video in state immediately for better UX
+      setVideos(prevVideos => 
+        prevVideos.map(video => 
+          video.id === videoId 
+            ? { 
+                ...video, 
+                is_liked: response.data.status === 'liked',
+                likes_count: response.data.likes_count || video.likes_count 
+              }
+            : video
+        )
+      )
     } catch (err) {
       console.error('Error liking video:', err)
     }
   }
 
-  const handleComment = async (videoId, text) => {
+  const handleComment = async (videoId, text, username = 'Anonymous') => {
     try {
       await api.post(`/api/videos/${videoId}/comment/`, {
-        text
+        text,
+        username
       })
       // Refresh videos to get updated comments
       fetchVideos()

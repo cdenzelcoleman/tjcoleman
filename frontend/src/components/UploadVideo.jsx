@@ -97,8 +97,23 @@ const UploadVideo = () => {
       }, 2000)
 
     } catch (err) {
-      setError('Failed to upload video. Please try again.')
-      console.error('Upload error:', err)
+      console.error('Upload error details:', err)
+      console.error('Error response:', err.response)
+      console.error('Error status:', err.response?.status)
+      console.error('Error data:', err.response?.data)
+      
+      let errorMessage = 'Failed to upload video. Please try again.'
+      if (err.response?.status === 403) {
+        errorMessage = 'Permission denied. Please make sure you are logged in as admin.'
+      } else if (err.response?.status === 413) {
+        errorMessage = 'File too large. Please use a smaller video file.'
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error
+      }
+      
+      setError(errorMessage)
     } finally {
       setUploading(false)
     }

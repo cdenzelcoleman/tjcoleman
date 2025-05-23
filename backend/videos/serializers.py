@@ -3,9 +3,17 @@ from django.contrib.auth.models import User
 from .models import Video, Like, Comment, Share, Subscription
 
 class UserSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['id', 'username', 'first_name', 'last_name', 'display_name']
+    
+    def get_display_name(self, obj):
+        # For anonymous users, show their first_name, otherwise username
+        if obj.first_name and not obj.is_active:
+            return obj.first_name
+        return obj.username
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -38,8 +46,13 @@ class VideoSerializer(serializers.ModelSerializer):
     
     def get_is_liked(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return obj.likes.filter(user=request.user).exists()
+        if request:
+            if request.user.is_authenticated:
+                return obj.likes.filter(user=request.user).exists()
+            else:
+                # Check session-based likes for anonymous users
+                session_likes = request.session.get('liked_videos', [])
+                return obj.id in session_likes
         return False
 
 class LikeSerializer(serializers.ModelSerializer):

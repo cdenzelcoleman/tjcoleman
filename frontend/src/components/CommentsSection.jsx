@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { X, Send } from 'lucide-react'
+import { X, Send, User } from 'lucide-react'
 
 const CommentsSection = ({ comments, onComment, onClose }) => {
   const [newComment, setNewComment] = useState('')
+  const [username, setUsername] = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (newComment.trim()) {
-      onComment(newComment.trim())
+      onComment(newComment.trim(), username.trim() || 'Anonymous')
       setNewComment('')
+      setUsername('')
     }
   }
 
@@ -51,7 +53,7 @@ const CommentsSection = ({ comments, onComment, onClose }) => {
             <div key={comment.id} className="comment">
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span className="comment-author">@{comment.user.username}</span>
+                  <span className="comment-author">@{comment.user.display_name}</span>
                   <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
                     {formatTimeAgo(comment.created_at)}
                   </span>
@@ -64,14 +66,25 @@ const CommentsSection = ({ comments, onComment, onClose }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="comment-form">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="comment-input"
-          maxLength={1000}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+          <input
+            type="text"
+            placeholder="Your name (optional)"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="comment-input"
+            maxLength={50}
+            style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+          />
+          <input
+            type="text"
+            placeholder="Add a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="comment-input"
+            maxLength={1000}
+          />
+        </div>
         <button 
           type="submit" 
           className="comment-submit"

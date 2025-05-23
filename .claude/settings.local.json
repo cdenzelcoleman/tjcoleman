@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(source:*)",
-      "Bash(python manage.py:*)"
+      "Bash(python manage.py:*)",
+      "Bash(pgrep:*)",
+      "Bash(pip install:*)",
+      "Bash(python test_upload.py:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(python test_features.py)"
     ],
     "deny": []
   }

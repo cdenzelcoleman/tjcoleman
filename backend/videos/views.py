@@ -24,7 +24,10 @@ class VideoViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def perform_create(self, serializer):
+        print(f"Creating video - User: {self.request.user}, Is Admin: {self.request.user.is_staff}")
+        print(f"Request data: {self.request.data}")
         video = serializer.save(uploader=self.request.user)
+        print(f"Video created: {video.id} - {video.title}")
         # Send notification to subscribers
         self.notify_subscribers(video)
     
@@ -43,9 +46,28 @@ class VideoViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 print(f"Failed to send notification emails: {e}")
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
     def like(self, request, pk=None):
         video = self.get_object()
+        
+        # For anonymous users, use session-based likes
+        if not request.user.is_authenticated:
+            session_likes = request.session.get('liked_videos', [])
+            video_id = video.id
+            
+            if video_id in session_likes:
+                # Unlike
+                session_likes.remove(video_id)
+                request.session['liked_videos'] = session_likes
+                return Response({'status': 'unliked', 'likes_count': video.likes.count()})
+            else:
+                # Like
+                session_likes.append(video_id)
+                request.session['liked_videos'] = session_likes
+                request.session.modified = True
+                return Response({'status': 'liked', 'likes_count': video.likes.count()})
+        
+        # For authenticated users, use database likes
         like, created = Like.objects.get_or_create(
             user=request.user,
             video=video
@@ -53,18 +75,39 @@ class VideoViewSet(viewsets.ModelViewSet):
         
         if not created:
             like.delete()
-            return Response({'status': 'unliked'})
+            return Response({'status': 'unliked', 'likes_count': video.likes.count()})
         
-        return Response({'status': 'liked'})
+        return Response({'status': 'liked', 'likes_count': video.likes.count()})
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
     def comment(self, request, pk=None):
         video = self.get_object()
-        serializer = CommentSerializer(data=request.data)
+        
+        # For anonymous users, create a temporary user
+        if not request.user.is_authenticated:
+            username = request.data.get('username', 'Anonymous')
+            # Create or get anonymous user
+            user, created = User.objects.get_or_create(
+                username=f'anon_{username}_{video.id}_{len(video.comments.all())}',
+                defaults={
+                    'first_name': username,
+                    'is_active': False  # Mark as inactive since it's anonymous
+                }
+            )
+        else:
+            user = request.user
+        
+        # Create comment
+        comment_data = {
+            'text': request.data.get('text', '')
+        }
+        serializer = CommentSerializer(data=comment_data)
         
         if serializer.is_valid():
-            serializer.save(user=request.user, video=video)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            comment = serializer.save(user=user, video=video)
+            # Return comment with user info
+            response_data = CommentSerializer(comment).data
+            return Response(response_data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -135,12 +178,17 @@ def admin_login(request):
     username = request.data.get('username')
     password = request.data.get('password')
     
+    print(f"Login attempt - Username: {username}")
+    
     if not username or not password:
         return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
     
     user = authenticate(username=username, password=password)
+    print(f"Authentication result - User: {user}, Is Staff: {user.is_staff if user else 'N/A'}")
+    
     if user and user.is_staff:
         login(request, user)
+        print(f"Login successful for {user.username}")
         return Response({
             'message': 'Login successful',
             'user': {
@@ -151,6 +199,7 @@ def admin_login(request):
             }
         })
     
+    print(f"Login failed - User exists: {user is not None}, Is staff: {user.is_staff if user else False}")
     return Response({'error': 'Invalid credentials or not an admin'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
@@ -179,3 +228,14 @@ def check_admin_status(request):
 @ensure_csrf_cookie
 def get_csrf_token(request):
     return Response({'csrfToken': get_token(request)})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def debug_session(request):
+    return Response({
+        'user': str(request.user),
+        'is_authenticated': request.user.is_authenticated,
+        'is_staff': request.user.is_staff if request.user.is_authenticated else False,
+        'session_key': request.session.session_key,
+        'cookies': dict(request.COOKIES),
+    })
