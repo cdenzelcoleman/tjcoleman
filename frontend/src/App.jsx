@@ -4,7 +4,7 @@ import VideoFeed from './components/VideoFeed'
 import AdminPanel from './components/AdminPanel'
 import Navigation from './components/Navigation'
 import AdminLogin from './components/AdminLogin'
-import axios from 'axios'
+import api from './utils/api'
 import './App.css'
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
 
   const checkAdminStatus = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/admin/status/')
+      const response = await api.get('/api/admin/status/')
       setIsAdmin(response.data.is_admin)
       if (response.data.is_admin) {
         setAdminUser(response.data.user)
@@ -32,7 +32,7 @@ function App() {
 
   const handleAdminLogin = async (credentials) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/admin/login/', credentials)
+      const response = await api.post('/api/admin/login/', credentials)
       setIsAdmin(true)
       setAdminUser(response.data.user)
       return { success: true }
@@ -46,7 +46,7 @@ function App() {
 
   const handleAdminLogout = async () => {
     try {
-      await axios.post('http://localhost:8000/api/admin/logout/')
+      await api.post('/api/admin/logout/')
       setIsAdmin(false)
       setAdminUser(null)
     } catch (error) {

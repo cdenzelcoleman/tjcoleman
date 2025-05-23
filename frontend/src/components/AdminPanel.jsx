@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Eye, Users } from 'lucide-react'
-import axios from 'axios'
+import api from '../utils/api'
 import UploadVideo from './UploadVideo'
 import EditVideo from './EditVideo'
 
@@ -24,7 +24,7 @@ const AdminPanel = ({ adminUser }) => {
 
   const fetchVideos = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/videos/')
+      const response = await api.get('/api/videos/')
       setVideos(response.data)
       
       // Calculate stats
@@ -51,7 +51,7 @@ const AdminPanel = ({ adminUser }) => {
     }
 
     try {
-      await axios.delete(`http://localhost:8000/api/videos/${videoId}/`)
+      await api.delete(`/api/videos/${videoId}/`)
       fetchVideos() // Refresh the list
     } catch (error) {
       console.error('Error deleting video:', error)

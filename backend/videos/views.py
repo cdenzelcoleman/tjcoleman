@@ -6,6 +6,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 from .models import Video, Like, Comment, Share, Subscription
 from .serializers import VideoSerializer, CommentSerializer, ShareSerializer, SubscriptionSerializer
 
@@ -170,3 +173,9 @@ def check_admin_status(request):
             }
         })
     return Response({'is_admin': False})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return Response({'csrfToken': get_token(request)})

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import api from '../utils/api'
 import { Save, X } from 'lucide-react'
 
 const EditVideo = ({ video, onSave, onCancel }) => {
@@ -26,7 +26,7 @@ const EditVideo = ({ video, onSave, onCancel }) => {
     setError('')
 
     try {
-      await axios.patch(`http://localhost:8000/api/videos/${video.id}/`, formData)
+      await api.patch(`/api/videos/${video.id}/`, formData)
       onSave()
     } catch (err) {
       setError('Failed to update video. Please try again.')

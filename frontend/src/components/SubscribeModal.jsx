@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, Bell, Check, Mail } from 'lucide-react'
-import axios from 'axios'
+import api from '../utils/api'
 
 const SubscribeModal = ({ onClose }) => {
   const [email, setEmail] = useState('')
@@ -14,7 +14,7 @@ const SubscribeModal = ({ onClose }) => {
     setError('')
 
     try {
-      const response = await axios.post('http://localhost:8000/api/videos/1/subscribe/', {
+      const response = await api.post('/api/videos/1/subscribe/', {
         email: email
       })
       setSuccess(true)

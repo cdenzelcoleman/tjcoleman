@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../utils/api'
 import VideoPlayer from './VideoPlayer'
 
 const VideoFeed = () => {
@@ -15,7 +15,7 @@ const VideoFeed = () => {
 
   const fetchVideos = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/videos/feed/')
+      const response = await api.get('/api/videos/feed/')
       setVideos(response.data)
     } catch (err) {
       setError('Failed to load videos')
@@ -27,7 +27,7 @@ const VideoFeed = () => {
 
   const handleLike = async (videoId) => {
     try {
-      await axios.post(`http://localhost:8000/api/videos/${videoId}/like/`)
+      await api.post(`/api/videos/${videoId}/like/`)
       // Refresh videos to get updated like count
       fetchVideos()
     } catch (err) {
@@ -37,7 +37,7 @@ const VideoFeed = () => {
 
   const handleComment = async (videoId, text) => {
     try {
-      await axios.post(`http://localhost:8000/api/videos/${videoId}/comment/`, {
+      await api.post(`/api/videos/${videoId}/comment/`, {
         text
       })
       // Refresh videos to get updated comments
@@ -49,7 +49,7 @@ const VideoFeed = () => {
 
   const handleShare = async (videoId, platform) => {
     try {
-      await axios.post(`http://localhost:8000/api/videos/${videoId}/share/`, {
+      await api.post(`/api/videos/${videoId}/share/`, {
         platform
       })
       
@@ -78,7 +78,7 @@ const VideoFeed = () => {
 
   const incrementViews = async (videoId) => {
     try {
-      await axios.post(`http://localhost:8000/api/videos/${videoId}/increment_views/`)
+      await api.post(`/api/videos/${videoId}/increment_views/`)
     } catch (err) {
       console.error('Error incrementing views:', err)
     }

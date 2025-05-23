@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../utils/api'
 import { Upload, Film, Check } from 'lucide-react'
 
 const UploadVideo = () => {
@@ -74,7 +74,7 @@ const UploadVideo = () => {
       submitData.append('video_type', formData.video_type)
       submitData.append('video_file', formData.video_file)
 
-      const response = await axios.post('http://localhost:8000/api/videos/', submitData, {
+      const response = await api.post('/api/videos/', submitData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

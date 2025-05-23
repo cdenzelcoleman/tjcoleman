@@ -7,14 +7,15 @@ const Navigation = ({ isAdmin, adminUser, onAdminLogout }) => {
   return (
     <nav className="navigation">
       <div className="nav-content">
-        <div className="logo">VideoHub</div>
+        <div className="logo">Claiming Ease</div>
         <ul className="nav-links">
           <li>
             <Link 
               to="/" 
               className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
             >
-              Feed
+              The Ease
+              
             </Link>
           </li>
           <li>
