@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Video, Like, Comment, Share, Subscription
+from .models import Video, Like, Comment, Share, Subscription, BlogPost, EmailSubscriber, BlogComment
 
 class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
@@ -69,3 +69,38 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ['id', 'email', 'is_active', 'created_at']
+
+class BlogPostSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    comments_count = serializers.SerializerMethodField()
+    embed_html = serializers.SerializerMethodField()
+    blog_comments = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BlogPost
+        fields = [
+            'id', 'title', 'content', 'content_type', 'video_url', 
+            'featured_image', 'author', 'category', 'tags', 'is_published',
+            'views', 'created_at', 'updated_at', 'published_at',
+            'comments_count', 'embed_html', 'blog_comments'
+        ]
+    
+    def get_comments_count(self, obj):
+        return obj.blog_comments.filter(is_approved=True).count()
+    
+    def get_embed_html(self, obj):
+        return obj.get_embed_html()
+    
+    def get_blog_comments(self, obj):
+        approved_comments = obj.blog_comments.filter(is_approved=True)
+        return BlogCommentSerializer(approved_comments, many=True).data
+
+class EmailSubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailSubscriber
+        fields = ['id', 'email', 'name', 'is_active', 'created_at']
+
+class BlogCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogComment
+        fields = ['id', 'name', 'content', 'created_at']

@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LogOut, Settings } from 'lucide-react'
 
-const Navigation = ({ isAdmin, adminUser, onAdminLogout }) => {
+const Navigation = () => {
   const location = useLocation()
 
   return (
@@ -14,38 +13,41 @@ const Navigation = ({ isAdmin, adminUser, onAdminLogout }) => {
               to="/" 
               className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
             >
-              The Ease
-              
+              Home
             </Link>
           </li>
           <li>
             <Link 
-              to="/admin" 
-              className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
+              to="/about" 
+              className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}
             >
-              <Settings size={16} style={{ marginRight: '0.5rem' }} />
-              {isAdmin ? 'Admin Panel' : 'Admin Login'}
+              About Me
             </Link>
           </li>
-          {isAdmin && (
-            <li>
-              <button 
-                onClick={onAdminLogout}
-                className="nav-link"
-                style={{ 
-                  background: 'none', 
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <LogOut size={16} />
-                Logout ({adminUser?.username})
-              </button>
-            </li>
-          )}
+          <li>
+            <Link 
+              to="/written" 
+              className={`nav-link ${location.pathname === '/written' ? 'active' : ''}`}
+            >
+              The Claimed
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/video" 
+              className={`nav-link ${location.pathname === '/video' ? 'active' : ''}`}
+            >
+              The Ease
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/events" 
+              className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}
+            >
+              The Events
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

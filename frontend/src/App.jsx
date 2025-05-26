@@ -1,9 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import VideoFeed from './components/VideoFeed'
-import AdminPanel from './components/AdminPanel'
 import Navigation from './components/Navigation'
-import AdminLogin from './components/AdminLogin'
+import Footer from './components/Footer'
+import Hero from './components/Hero'
+import ContentGrid from './components/ContentGrid'
+import VideoSection from './components/VideoSection'
+import WrittenSection from './components/WrittenSection'
+import EventsSection from './components/EventsSection'
+import AboutSection from './components/AboutSection'
+import BlogPost from './components/BlogPost'
+import EmailSubscribePopup from './components/EmailSubscribePopup'
 import api from './utils/api'
 import './index.css';
 import './App.css'
@@ -17,7 +23,7 @@ function App() {
     checkAdminStatus()
   }, [])
 
-  const checkAdminStatus = async () => {
+  const checkAdminStatus = async () => { 
     try {
       const response = await api.get('/api/admin/status/')
       setIsAdmin(response.data.is_admin)
@@ -62,26 +68,29 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <Navigation 
-          isAdmin={isAdmin} 
-          adminUser={adminUser}
-          onAdminLogout={handleAdminLogout}
-        />
+        <Navigation />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<VideoFeed />} />
-            <Route 
-              path="/admin" 
-              element={
-                isAdmin ? (
-                  <AdminPanel adminUser={adminUser} />
-                ) : (
-                  <AdminLogin onLogin={handleAdminLogin} />
-                )
-              } 
-            />
+            <Route path="/" element={
+              <>
+                <Hero />
+                <ContentGrid />
+              </>
+            } />
+            <Route path="/written" element={<WrittenSection />} />
+            <Route path="/video" element={<VideoSection />} />
+            <Route path="/events" element={<EventsSection />} />
+            <Route path="/about" element={<AboutSection />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
           </Routes>
         </main>
+        <Footer 
+          isAdmin={isAdmin}
+          adminUser={adminUser}
+          onAdminLogin={handleAdminLogin}
+          onAdminLogout={handleAdminLogout}
+        />
+        <EmailSubscribePopup />
       </div>
     </Router>
   )

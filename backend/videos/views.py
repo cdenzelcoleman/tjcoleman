@@ -9,8 +9,8 @@ from django.conf import settings
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-from .models import Video, Like, Comment, Share, Subscription
-from .serializers import VideoSerializer, CommentSerializer, ShareSerializer, SubscriptionSerializer
+from .models import Video, Like, Comment, Share, Subscription, BlogPost, EmailSubscriber, BlogComment
+from .serializers import VideoSerializer, CommentSerializer, ShareSerializer, SubscriptionSerializer, BlogPostSerializer, EmailSubscriberSerializer, BlogCommentSerializer
 
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.filter(is_public=True)
@@ -228,6 +228,102 @@ def check_admin_status(request):
 @ensure_csrf_cookie
 def get_csrf_token(request):
     return Response({'csrfToken': get_token(request)})
+
+class BlogPostViewSet(viewsets.ModelViewSet):
+    serializer_class = BlogPostSerializer
+    
+    def get_queryset(self):
+        if self.action in ['list', 'retrieve']:
+            return BlogPost.objects.filter(is_published=True).order_by('-published_at')
+        return BlogPost.objects.all()
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
+    
+    def perform_create(self, serializer):
+        blog_post = serializer.save(author=self.request.user)
+        if blog_post.is_published:
+            self.notify_subscribers_blog(blog_post)
+    
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        blog_post = serializer.save()
+        # If just published, notify subscribers
+        if blog_post.is_published and not old_instance.is_published:
+            self.notify_subscribers_blog(blog_post)
+    
+    def notify_subscribers_blog(self, blog_post):
+        subscribers = EmailSubscriber.objects.filter(is_active=True)
+        if subscribers.exists():
+            try:
+                recipient_list = [sub.email for sub in subscribers]
+                send_mail(
+                    subject=f'New Post: {blog_post.title}',
+                    message=f'A new blog post "{blog_post.title}" has been published! Check it out on Good Stories.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=recipient_list,
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"Failed to send blog notification emails: {e}")
+    
+    @action(detail=True, methods=['post'])
+    def increment_views(self, request, pk=None):
+        blog_post = self.get_object()
+        blog_post.views += 1
+        blog_post.save()
+        return Response({'views': blog_post.views})
+    
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
+    def add_comment(self, request, pk=None):
+        blog_post = self.get_object()
+        
+        serializer = BlogCommentSerializer(data=request.data)
+        if serializer.is_valid():
+            comment = serializer.save(blog_post=blog_post)
+            return Response(BlogCommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def subscribe_email(request):
+    email = request.data.get('email')
+    name = request.data.get('name', '')
+    
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    subscriber, created = EmailSubscriber.objects.get_or_create(
+        email=email,
+        defaults={'name': name, 'is_active': True}
+    )
+    
+    if not created and not subscriber.is_active:
+        subscriber.is_active = True
+        subscriber.save()
+    
+    message = 'Subscribed successfully!' if created else 'Already subscribed!'
+    return Response({'message': message})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def unsubscribe_email(request):
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        subscriber = EmailSubscriber.objects.get(email=email)
+        subscriber.is_active = False
+        subscriber.save()
+        return Response({'message': 'Unsubscribed successfully'})
+    except EmailSubscriber.DoesNotExist:
+        return Response({'error': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
