@@ -8,7 +8,8 @@
       "Bash(python test_upload.py:*)",
       "Bash(pkill:*)",
       "Bash(true)",
-      "Bash(python test_features.py)"
+      "Bash(python test_features.py)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

@@ -68,13 +68,14 @@ class BlogPost(models.Model):
         ('text', 'Text Only'),
         ('youtube', 'YouTube Video'),
         ('instagram', 'Instagram Video'),
+        ('substack', 'Substack Link'),
         ('mixed', 'Text + Video'),
     ]
     
     title = models.CharField(max_length=255)
     content = models.TextField()
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default='text')
-    video_url = models.URLField(blank=True, null=True, help_text="YouTube or Instagram video URL")
+    video_url = models.URLField(blank=True, null=True, help_text="YouTube, Instagram, or Substack URL")
     video_embed_id = models.CharField(max_length=255, blank=True, null=True)
     featured_image = models.ImageField(upload_to='blog_images/', blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
@@ -112,6 +113,12 @@ class BlogPost(models.Model):
             r'instagram\.com/(?:p|reel)/([a-zA-Z0-9_-]+)',
         ]
         
+        # Substack patterns
+        substack_patterns = [
+            r'([a-zA-Z0-9_-]+)\.substack\.com/p/([a-zA-Z0-9_-]+)',
+            r'substack\.com/([^/]+)/p/([a-zA-Z0-9_-]+)',
+        ]
+        
         for pattern in youtube_patterns:
             match = re.search(pattern, self.video_url)
             if match:
@@ -121,6 +128,11 @@ class BlogPost(models.Model):
             match = re.search(pattern, self.video_url)
             if match:
                 return f"instagram_{match.group(1)}"
+                
+        for pattern in substack_patterns:
+            match = re.search(pattern, self.video_url)
+            if match:
+                return f"substack_{match.group(1)}_{match.group(2)}"
                 
         return None
     
@@ -135,6 +147,9 @@ class BlogPost(models.Model):
         elif self.video_embed_id.startswith('instagram_'):
             video_id = self.video_embed_id.replace('instagram_', '')
             return f'<iframe src="https://www.instagram.com/p/{video_id}/embed" width="100%" height="400" frameborder="0" scrolling="no" allowtransparency="true"></iframe>'
+        elif self.video_embed_id.startswith('substack_'):
+            # For Substack, we'll return a link button instead of embed
+            return f'<div class="substack-link"><a href="{self.video_url}" target="_blank" rel="noopener noreferrer" class="substack-button">Read on Substack</a></div>'
             
         return None
     

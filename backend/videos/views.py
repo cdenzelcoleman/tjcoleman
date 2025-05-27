@@ -234,6 +234,9 @@ class BlogPostViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
+            # Admin users can see all posts, regular users only see published posts
+            if self.request.user.is_authenticated and self.request.user.is_staff:
+                return BlogPost.objects.all().order_by('-created_at')
             return BlogPost.objects.filter(is_published=True).order_by('-published_at')
         return BlogPost.objects.all()
     

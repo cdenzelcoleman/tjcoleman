@@ -18,6 +18,7 @@ const CreateBlogPost = ({ onClose, onSubmit }) => {
     { value: 'text', label: 'written piece' },
     { value: 'youtube', label: 'with youtube video' },
     { value: 'instagram', label: 'with instagram video' },
+    { value: 'substack', label: 'substack link' },
     { value: 'mixed', label: 'text with embedded video' }
   ]
 
@@ -68,7 +69,8 @@ const CreateBlogPost = ({ onClose, onSubmit }) => {
     if (!url) return true
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)/
     const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/(p|reel)\//
-    return youtubeRegex.test(url) || instagramRegex.test(url)
+    const substackRegex = /^(https?:\/\/)?([a-zA-Z0-9_-]+\.)?substack\.com/
+    return youtubeRegex.test(url) || instagramRegex.test(url) || substackRegex.test(url)
   }
 
   return (
@@ -111,18 +113,21 @@ const CreateBlogPost = ({ onClose, onSubmit }) => {
 
           {(formData.content_type === 'youtube' || 
             formData.content_type === 'instagram' || 
+            formData.content_type === 'substack' ||
             formData.content_type === 'mixed') && (
             <div className="form-group">
-              <label>Video URL</label>
+              <label>{formData.content_type === 'substack' ? 'Substack URL' : 'Video URL'}</label>
               <input
                 type="url"
                 name="video_url"
                 value={formData.video_url}
                 onChange={handleChange}
-                placeholder="https://youtube.com/watch?v=... or https://instagram.com/p/..."
+                placeholder={formData.content_type === 'substack' 
+                  ? "https://yourname.substack.com/p/post-title" 
+                  : "https://youtube.com/watch?v=... or https://instagram.com/p/..."}
               />
               {formData.video_url && !validateVideoUrl(formData.video_url) && (
-                <small className="error-text">Please enter a valid YouTube or Instagram URL</small>
+                <small className="error-text">Please enter a valid {formData.content_type === 'substack' ? 'Substack' : 'YouTube or Instagram'} URL</small>
               )}
             </div>
           )}

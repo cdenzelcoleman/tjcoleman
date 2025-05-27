@@ -70,6 +70,37 @@
   border: none;
 }
 
+.substack-link {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border-radius: 15px;
+  margin: 2rem 0;
+}
+
+.substack-button {
+  display: inline-block;
+  background: white;
+  color: #ff6b35;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.substack-button:hover {
+  background: transparent;
+  color: white;
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
 .blog-content {
   line-height: 1.9;
   font-size: 1.05rem;
