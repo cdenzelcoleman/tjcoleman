@@ -1,8 +1,18 @@
 import axios from 'axios'
 
+// Get the API base URL from environment variables or use production default
+const getBaseURL = () => {
+  // In development, use localhost
+  if (import.meta.env.DEV) {
+    return import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  }
+  // In production, use Heroku URL
+  return import.meta.env.VITE_API_URL || 'https://claimingease-e578dc2dae4d.herokuapp.com'
+}
+
 // Create an axios instance with default configuration
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: getBaseURL(),
   withCredentials: true, // Important for session authentication
   headers: {
     'Content-Type': 'application/json',

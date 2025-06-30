@@ -56,11 +56,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development only
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://claimingease.netlify.app",
+    "https://claimingease.vercel.app",
+    # Add your actual frontend domain here when deployed
 ]
 
 REST_FRAMEWORK = {
@@ -126,6 +129,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
+    'https://claimingease.netlify.app',
+    'https://claimingease.vercel.app',
+    # Add your actual frontend domain here when deployed
 ]
 
 
