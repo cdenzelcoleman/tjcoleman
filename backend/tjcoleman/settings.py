@@ -61,6 +61,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://cdenzelcoleman.github.io",
     "https://claimingease.netlify.app",
     "https://claimingease.vercel.app",
     # Add your actual frontend domain here when deployed
@@ -129,6 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
+    'https://cdenzelcoleman.github.io',
     'https://claimingease.netlify.app',
     'https://claimingease.vercel.app',
     # Add your actual frontend domain here when deployed
